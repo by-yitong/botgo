@@ -30,6 +30,10 @@ const (
 	c2cMessagesURI  uri = "/v2/users/{user_id}/messages"
 	c2cRichMediaURI uri = "/v2/users/{user_id}/files"
 
+	// --- 单聊流式与分享链接（官方 2026-11 文档新增，本地 fork 补充）---
+	streamC2CMessageURI uri = "/v2/users/{user_openid}/stream_messages" // 流式发送单聊消息（50 QPS）
+	generateURLLinkURI  uri = "/v2/generate_url_link"                   // 生成分享链接（50 QPS）
+
 	retractC2cMessageURI   uri = "/v2/users/{user_id}/messages/{message_id}"
 	retractGroupMessageURI uri = "/v2/groups/{group_id}/messages/{message_id}"
 
@@ -44,11 +48,16 @@ const (
 	groupApprovalJoinRequestURI     = "/v2/groups/{group_openid}/approval_join_request/{member_openid}"
 	groupJoinRequestListURI         = "/v2/groups/{group_openid}/join_request_list"
 	joinApprovalStrategyURI         = "/v2/groups/join_approval_strategy" // 机器人维度，不带群 id
+	// 官方 2026-11 文档新增的策略管理端点（创建走上面的 joinApprovalStrategyURI）。
+	joinApprovalStrategyIDURI        = "/v2/groups/join_approval_strategy/{strategy_id}"
+	joinApprovalStrategyExecuteURI   = "/v2/groups/join_approval_strategy/{strategy_id}/execute"
+	joinApprovalStrategyWhitelistURI = "/v2/groups/join_approval_strategy/{strategy_id}/whitelist_users"
 
 	// --- 自定义菜单与指令面板（本地 fork 补充）---
-	menuURI   uri = "/v2/menu"
-	panelsURI     = "/v2/panels"
-	panelURI      = "/v2/panels/{panel_id}"
+	menuURI        uri = "/v2/menu"
+	panelsURI          = "/v2/panels"
+	panelURI           = "/v2/panels/{panel_id}"
+	panelTargetURI     = "/v2/panels/{panel_id}/target" // 修改面板关联对象（官方 2026-11 文档新增，60 QPM）
 
 	// --- 富媒体上传（本地 fork 补充：分片上传官方 chunked-upload 流程）。占位名
 	// {openid} 与既有消息端点的 {group_id}/{user_id} 不同，见 richmedia.go 的端点表。---

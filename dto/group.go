@@ -261,3 +261,50 @@ type JoinApprovalStrategyPage struct {
 	Strategies []JoinApprovalStrategy `json:"strategies"`
 	NextCursor string                 `json:"next_cursor"`
 }
+
+// CreateJoinApprovalStrategyReq 创建入群自动审批策略请求（POST /v2/groups/join_approval_strategy，
+// 官方 2026-11 文档新增）。GroupOpenIDs 与 GroupIDs 二选一、互斥，各 ≤100。
+type CreateJoinApprovalStrategyReq struct {
+	GroupOpenIDs []string `json:"group_openids,omitempty"` // 关联群 openid，与 GroupIDs 二选一，≤100，互斥
+	GroupIDs     []uint64 `json:"group_ids,omitempty"`     // QQ 群号，≤100
+	IsEnable     string   `json:"is_enable,omitempty"`     // on/off，默认 on
+	ExpireAt     string   `json:"expire_at,omitempty"`     // 过期时间（RFC3339），不传默认一年
+	Remark       string   `json:"remark,omitempty"`        // 备注，≤255 汉字
+}
+
+// JoinApprovalStrategyOpResult 创建/修改策略的响应（官方 2026-11 文档新增）。
+type JoinApprovalStrategyOpResult struct {
+	StrategyID string `json:"strategy_id,omitempty"`
+	IsEnable   string `json:"is_enable,omitempty"` // on 启用 / off 关闭
+	ExpireAt   string `json:"expire_at,omitempty"` // 过期时间（RFC3339）
+}
+
+// JoinGroupAction 修改策略时的群增删动作（官方 2026-11 文档新增）。
+type JoinGroupAction struct {
+	Op           string   `json:"op"`                      // add/del
+	GroupOpenIDs []string `json:"group_openids,omitempty"` // 与 GroupIDs 互斥
+	GroupIDs     []uint64 `json:"group_ids,omitempty"`     // QQ 群号
+}
+
+// UpdateJoinApprovalStrategyReq 修改入群自动审批策略请求
+// （PATCH /v2/groups/join_approval_strategy/{strategy_id}，官方 2026-11 文档新增）。
+type UpdateJoinApprovalStrategyReq struct {
+	IsEnable    string           `json:"is_enable,omitempty"`
+	ExpireAt    string           `json:"expire_at,omitempty"`    // 过期时间（RFC3339）
+	GroupAction *JoinGroupAction `json:"group_action,omitempty"` // 群标识形式须与创建时一致
+	Remark      string           `json:"remark,omitempty"`       // 备注
+}
+
+// SetJoinApprovalWhitelistReq 修改策略白名单请求
+// （POST /v2/groups/join_approval_strategy/{strategy_id}/whitelist_users，官方 2026-11 文档新增）。
+type SetJoinApprovalWhitelistReq struct {
+	Op             string   `json:"op"`              // add/del
+	WhitelistUsers []string `json:"whitelist_users"` // QQ 号码字符串数组，单次 ≤10000
+}
+
+// JoinApprovalWhitelistResult 修改策略白名单的响应（官方 2026-11 文档新增）。
+type JoinApprovalWhitelistResult struct {
+	StrategyID         string `json:"strategy_id"`
+	WhitelistUserCount int    `json:"whitelist_user_count"`
+	UpdatedAt          string `json:"updated_at"` // RFC3339
+}

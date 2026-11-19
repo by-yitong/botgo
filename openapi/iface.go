@@ -111,6 +111,12 @@ type MessageAPI interface {
 
 	// RetractGroupMessage 撤回群消息
 	RetractGroupMessage(ctx context.Context, groupID, msgID string, opt ...options.Option) error
+
+	// PostStreamC2CMessage 流式发送单聊消息（官方 2026-11 文档新增，POST /v2/users/{user_openid}/stream_messages，50 QPS）
+	PostStreamC2CMessage(ctx context.Context, userOpenID string, req *dto.StreamMessageReq) (*dto.StreamMessageRsp, error)
+
+	// GenerateURLLink 生成分享链接（官方 2026-11 文档新增，POST /v2/generate_url_link，50 QPS）
+	GenerateURLLink(ctx context.Context, callbackData string) (string, error)
 }
 
 // GuildAPI guild 相关接口
@@ -334,6 +340,18 @@ type GroupJoinRequestAPI interface {
 	GetGroupJoinRequestPage(ctx context.Context, groupOpenID, cursor string) (*dto.GroupJoinRequestPage, error)
 	ListGroupJoinRequests(ctx context.Context, groupOpenID string) ([]dto.GroupJoinRequest, error)
 	ListJoinApprovalStrategies(ctx context.Context) ([]dto.JoinApprovalStrategy, error)
+
+	// 以下为入群自动审批策略管理（官方 2026-11 文档新增）
+	// CreateJoinApprovalStrategy 创建策略（POST /v2/groups/join_approval_strategy，60 QPM）
+	CreateJoinApprovalStrategy(ctx context.Context, req dto.CreateJoinApprovalStrategyReq) (*dto.JoinApprovalStrategyOpResult, error)
+	// UpdateJoinApprovalStrategy 修改策略（PATCH /v2/groups/join_approval_strategy/{strategy_id}，60 QPM）
+	UpdateJoinApprovalStrategy(ctx context.Context, strategyID string, req dto.UpdateJoinApprovalStrategyReq) (*dto.JoinApprovalStrategyOpResult, error)
+	// ExecuteJoinApprovalStrategy 执行策略（POST /v2/groups/join_approval_strategy/{strategy_id}/execute，60 QPM）
+	ExecuteJoinApprovalStrategy(ctx context.Context, strategyID string) error
+	// SetJoinApprovalWhitelist 修改策略白名单（POST /v2/groups/join_approval_strategy/{strategy_id}/whitelist_users，60 QPM）
+	SetJoinApprovalWhitelist(ctx context.Context, strategyID string, req dto.SetJoinApprovalWhitelistReq) (*dto.JoinApprovalWhitelistResult, error)
+	// DeleteJoinApprovalStrategy 删除策略（DELETE /v2/groups/join_approval_strategy/{strategy_id}，60 QPM）
+	DeleteJoinApprovalStrategy(ctx context.Context, strategyID string) error
 }
 
 // MenuAPI 自定义菜单与指令面板接口
@@ -343,6 +361,14 @@ type MenuAPI interface {
 	CreatePanel(ctx context.Context, p dto.PanelReq) (string, error)
 	ListPanels(ctx context.Context, scope string) ([]dto.PanelEntry, error)
 	DeletePanel(ctx context.Context, panelID string) error
+
+	// 以下为指令面板详情与修改（官方 2026-11 文档新增）
+	// GetPanel 查询面板详情（GET /v2/panels/{panel_id}，30 QPM）
+	GetPanel(ctx context.Context, panelID string) (*dto.PanelDetail, error)
+	// UpdatePanel 修改面板（PUT /v2/panels/{panel_id}，10 QPM）
+	UpdatePanel(ctx context.Context, panelID string, p dto.Panel) (*dto.PanelUpdateResult, error)
+	// UpdatePanelTarget 修改面板关联对象（PUT /v2/panels/{panel_id}/target，60 QPM）
+	UpdatePanelTarget(ctx context.Context, panelID string, req dto.PanelTargetReq) error
 }
 
 // RichMediaUploadAPI 富媒体上传接口（URL 模式与分片直传；返回的 file_info 用于

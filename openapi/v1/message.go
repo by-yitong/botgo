@@ -193,6 +193,48 @@ func (o *openAPI) PostC2CMessage(ctx context.Context, userID string, msg dto.API
 	return resp.Result().(*dto.Message), nil
 }
 
+// PostStreamC2CMessage 流式发送单聊消息（POST /v2/users/{user_openid}/stream_messages，官方
+// 2026-11 文档新增）。50 QPS；首片不填 StreamMsgID（响应 id 即流式 ID，续片回传）；
+// 错误码 40007=已下发前缀不可修改、50002=频控。
+func (o *openAPI) PostStreamC2CMessage(ctx context.Context, userOpenID string, req *dto.StreamMessageReq) (
+	*dto.StreamMessageRsp, error) {
+	rsp, err := o.request(ctx).
+		SetPathParam("user_openid", userOpenID).
+		SetBody(req).
+		SetResult(dto.StreamMessageRsp{}).
+		Post(o.getURL(streamC2CMessageURI))
+	if err != nil {
+		return nil, err
+	}
+	return rsp.Result().(*dto.StreamMessageRsp), nil
+}
+
+// urlLinkWrap 是 /v2/generate_url_link 的响应外层：URL 包在 data.url 里（官方
+// 2026-11 文档新增）。
+type urlLinkWrap struct {
+	Data struct {
+		URL string `json:"url"`
+	} `json:"data"`
+}
+
+// generateURLLinkReq 生成分享链接请求体：callback_data 可空（omitempty 序列化为空对象 {}）。
+type generateURLLinkReq struct {
+	CallbackData string `json:"callback_data,omitempty"`
+}
+
+// GenerateURLLink 生成分享链接（POST /v2/generate_url_link，官方 2026-11 文档新增）。
+// 50 QPS；callbackData 为按钮回调时携带的数据，可传空；错误码 11004=生成分享 ARK 失败。
+func (o *openAPI) GenerateURLLink(ctx context.Context, callbackData string) (string, error) {
+	rsp, err := o.request(ctx).
+		SetBody(generateURLLinkReq{CallbackData: callbackData}).
+		SetResult(urlLinkWrap{}).
+		Post(o.getURL(generateURLLinkURI))
+	if err != nil {
+		return "", err
+	}
+	return rsp.Result().(*urlLinkWrap).Data.URL, nil
+}
+
 func baseRequest(ctx context.Context, reqCMD *resty.Request, method, url string, opt ...options.Option) (
 	*resty.Response, error) {
 	opts := getOptions(ctx, opt...)

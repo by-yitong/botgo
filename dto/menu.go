@@ -49,8 +49,9 @@ type PanelReq struct {
 
 // Panel 是面板配置（元素最多 20 个）。
 type Panel struct {
-	Items  []PanelItem `json:"items,omitempty"`
-	Remark string      `json:"remark,omitempty"` // 开发者备注，不对用户展示
+	Items   []PanelItem `json:"items,omitempty"`
+	Remark  string      `json:"remark,omitempty"`  // 开发者备注，不对用户展示
+	Version int         `json:"version,omitempty"` // 当前版本号（官方 2026-11 文档新增）
 }
 
 // PanelItem 是面板元素。Type：command（点击把 name 填入输入框）/ link。
@@ -81,4 +82,29 @@ type PanelPage struct {
 	Records    []PanelEntry `json:"records"`
 	NextCursor string       `json:"next_cursor"`
 	IsEnd      bool         `json:"is_end"`
+}
+
+// PanelDetail 面板详情（GET /v2/panels/{panel_id}，官方 2026-11 文档新增）。
+type PanelDetail struct {
+	PanelID      string   `json:"panel_id"`
+	Scope        string   `json:"scope"`       // c2c/group/channel/dm
+	TargetType   string   `json:"target_type"` // all/specific
+	Panel        Panel    `json:"panel"`
+	CreatedAt    string   `json:"created_at,omitempty"` // RFC3339
+	UpdatedAt    string   `json:"updated_at,omitempty"`
+	Version      int      `json:"version"`
+	UserOpenIDs  []string `json:"user_openids,omitempty"`  // c2c+specific，≤1000
+	GroupOpenIDs []string `json:"group_openids,omitempty"` // group+specific，≤1000
+}
+
+// PanelUpdateResult 修改面板的响应（官方 2026-11 文档新增）。
+type PanelUpdateResult struct {
+	Version int `json:"version"`
+}
+
+// PanelTargetReq 修改面板关联对象请求（PUT /v2/panels/{panel_id}/target，官方 2026-11 文档新增）。
+type PanelTargetReq struct {
+	Op           string   `json:"op"`                      // add/del
+	UserOpenIDs  []string `json:"user_openids,omitempty"`  // 仅 c2c，≤20
+	GroupOpenIDs []string `json:"group_openids,omitempty"` // 仅 group，≤20
 }

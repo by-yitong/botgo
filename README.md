@@ -29,6 +29,10 @@ WebSocket / Webhook 事件接入、token 管理见 `event/`、`token/`、`sessio
 - 素材管理（media-images，markdown 图片平台转存）
 - 图文卡片发送（msg_type=8）、@全体成员内嵌标签
 - 用户基本信息（GET /v2/users/{user_openid}/info）
+- 流式发送单聊消息（POST /v2/users/{user_openid}/stream_messages）
+- 指令面板管理（详情 / 修改 / 关联对象）
+- 生成分享链接（POST /v2/generate_url_link）
+- 入群自动审批策略管理（创建 / 修改 / 执行 / 白名单 / 删除）
 - 事件：群成员加入（GROUP_MEMBER_ADD）、入群申请（GROUP_JOIN_REQUEST）等
 
 ## License

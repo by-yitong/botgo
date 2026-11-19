@@ -84,6 +84,34 @@ type Stream struct {
 	Reset bool   `json:"reset,omitempty"` // 重新生成流式消息标记，此参数只能使用于流式消息分片还没有发送完成时，reset时Index需要从0开始，需要填写流式ID。
 }
 
+// StreamMessageReq 流式发送单聊消息请求（POST /v2/users/{user_openid}/stream_messages，
+// 官方 2026-11 文档新增，与 MessageToCreate.Stream 旧式流式字段相区别：本接口为独立端点）。
+type StreamMessageReq struct {
+	InputMode   string `json:"input_mode,omitempty"`   // append（默认，拼接）/ replace（全量替换，须以已下发前缀开头）
+	InputState  int32  `json:"input_state,omitempty"`  // 1=生成中 10=生成结束
+	Index       int32  `json:"index,omitempty"`        // 分片序号，从 0 递增
+	ContentType string `json:"content_type,omitempty"` // text / markdown
+	ContentRaw  string `json:"content_raw,omitempty"`
+	EventID     string `json:"event_id,omitempty"`      // 与 MsgID 二选一（被动回复）
+	MsgID       string `json:"msg_id,omitempty"`        // 被动回复时填要回复的消息 id
+	StreamMsgID string `json:"stream_msg_id,omitempty"` // 首片不填；续片填上一分片响应返回的 id
+	MsgSeq      int32  `json:"msg_seq,omitempty"`       // 同一 msg_id/event_id 的去重序号
+	IsWakeup    bool   `json:"is_wakeup,omitempty"`     // 召回消息，不校验 msg_id/event_id 有效期
+}
+
+// StreamMessageRsp 流式发送单聊消息响应。
+type StreamMessageRsp struct {
+	ID           string          `json:"id"`                       // 首片返回 stream_msg_id，后续分片回传
+	Timestamp    string          `json:"timestamp"`                // 时间戳
+	ExtInfo      *MessageExtInfo `json:"ext_info,omitempty"`       // 扩展信息
+	RemainMsgLen int32           `json:"remain_msg_len,omitempty"` // 流式剩余长度（字符）
+}
+
+// MessageExtInfo 流式消息扩展信息。
+type MessageExtInfo struct {
+	RefIdx string `json:"ref_idx,omitempty"` // 引用下标
+}
+
 // PromptKeyboard 交互区操作
 type PromptKeyboard struct {
 	Keyboard *keyboard.MessageKeyboard `json:"keyboard,omitempty"` // 消息按钮组件

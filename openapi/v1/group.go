@@ -284,6 +284,73 @@ func (o *openAPI) ListJoinApprovalStrategies(ctx context.Context) ([]dto.JoinApp
 	return out, nil
 }
 
+// CreateJoinApprovalStrategy 创建入群自动审批策略（POST /v2/groups/join_approval_strategy，
+// 官方 2026-11 文档新增）。60 QPM；一个机器人最多 20 个策略；机器人须有关联群的管理员
+// 身份才生效。
+func (o *openAPI) CreateJoinApprovalStrategy(ctx context.Context, req dto.CreateJoinApprovalStrategyReq) (
+	*dto.JoinApprovalStrategyOpResult, error) {
+	rsp, err := o.request(ctx).
+		SetBody(req).
+		SetResult(dto.JoinApprovalStrategyOpResult{}).
+		Post(o.getURL(joinApprovalStrategyURI))
+	if err != nil {
+		return nil, err
+	}
+	return rsp.Result().(*dto.JoinApprovalStrategyOpResult), nil
+}
+
+// UpdateJoinApprovalStrategy 修改入群自动审批策略
+// （PATCH /v2/groups/join_approval_strategy/{strategy_id}，官方 2026-11 文档新增）。
+// 60 QPM；群标识形式须与创建时一致。
+func (o *openAPI) UpdateJoinApprovalStrategy(ctx context.Context, strategyID string, req dto.UpdateJoinApprovalStrategyReq) (
+	*dto.JoinApprovalStrategyOpResult, error) {
+	rsp, err := o.request(ctx).
+		SetPathParam("strategy_id", strategyID).
+		SetBody(req).
+		SetResult(dto.JoinApprovalStrategyOpResult{}).
+		Patch(o.getURL(joinApprovalStrategyIDURI))
+	if err != nil {
+		return nil, err
+	}
+	return rsp.Result().(*dto.JoinApprovalStrategyOpResult), nil
+}
+
+// ExecuteJoinApprovalStrategy 执行入群自动审批策略
+// （POST /v2/groups/join_approval_strategy/{strategy_id}/execute，官方 2026-11 文档新增）。
+// 60 QPM；异步全量扫描，约 10 分钟完成。
+func (o *openAPI) ExecuteJoinApprovalStrategy(ctx context.Context, strategyID string) error {
+	_, err := o.request(ctx).
+		SetPathParam("strategy_id", strategyID).
+		SetBody(struct{}{}).
+		Post(o.getURL(joinApprovalStrategyExecuteURI))
+	return err
+}
+
+// SetJoinApprovalWhitelist 修改策略白名单
+// （POST /v2/groups/join_approval_strategy/{strategy_id}/whitelist_users，官方 2026-11
+// 文档新增）。60 QPM；op=add/del，单次 ≤10000 个号码，总量上限 10 万。
+func (o *openAPI) SetJoinApprovalWhitelist(ctx context.Context, strategyID string, req dto.SetJoinApprovalWhitelistReq) (
+	*dto.JoinApprovalWhitelistResult, error) {
+	rsp, err := o.request(ctx).
+		SetPathParam("strategy_id", strategyID).
+		SetBody(req).
+		SetResult(dto.JoinApprovalWhitelistResult{}).
+		Post(o.getURL(joinApprovalStrategyWhitelistURI))
+	if err != nil {
+		return nil, err
+	}
+	return rsp.Result().(*dto.JoinApprovalWhitelistResult), nil
+}
+
+// DeleteJoinApprovalStrategy 删除入群自动审批策略
+// （DELETE /v2/groups/join_approval_strategy/{strategy_id}，官方 2026-11 文档新增）。60 QPM。
+func (o *openAPI) DeleteJoinApprovalStrategy(ctx context.Context, strategyID string) error {
+	_, err := o.request(ctx).
+		SetPathParam("strategy_id", strategyID).
+		Delete(o.getURL(joinApprovalStrategyIDURI))
+	return err
+}
+
 // --- 用户信息（官方 2026-11-16 新增，与群接口同一批 v2 开放接口）---
 
 // GetUserInfo 获取用户基本信息（GET /v2/users/{user_openid}/info）。10 QPS；

@@ -94,3 +94,46 @@ func (o *openAPI) DeletePanel(ctx context.Context, panelID string) error {
 		Delete(o.getURL(panelURI))
 	return err
 }
+
+// panelWrap 是 PUT /v2/panels/{panel_id} 的请求体外层：修改配置包在 panel 字段里
+// （官方 2026-11 文档新增）。
+type panelWrap struct {
+	Panel dto.Panel `json:"panel"`
+}
+
+// GetPanel 查询指令面板详情（GET /v2/panels/{panel_id}，官方 2026-11 文档新增）。
+// 30 QPM；错误码 40030006=面板不存在。
+func (o *openAPI) GetPanel(ctx context.Context, panelID string) (*dto.PanelDetail, error) {
+	rsp, err := o.request(ctx).
+		SetPathParam("panel_id", panelID).
+		SetResult(dto.PanelDetail{}).
+		Get(o.getURL(panelURI))
+	if err != nil {
+		return nil, err
+	}
+	return rsp.Result().(*dto.PanelDetail), nil
+}
+
+// UpdatePanel 修改指令面板（PUT /v2/panels/{panel_id}，官方 2026-11 文档新增）。
+// 10 QPM；覆盖 items+remark，不影响已关联对象。
+func (o *openAPI) UpdatePanel(ctx context.Context, panelID string, p dto.Panel) (*dto.PanelUpdateResult, error) {
+	rsp, err := o.request(ctx).
+		SetPathParam("panel_id", panelID).
+		SetBody(panelWrap{Panel: p}).
+		SetResult(dto.PanelUpdateResult{}).
+		Put(o.getURL(panelURI))
+	if err != nil {
+		return nil, err
+	}
+	return rsp.Result().(*dto.PanelUpdateResult), nil
+}
+
+// UpdatePanelTarget 修改面板关联对象（PUT /v2/panels/{panel_id}/target，官方 2026-11
+// 文档新增）。60 QPM；op=add/del，单次 ≤20；错误码 40030017=op 不合法、40030021=全局面板不支持。
+func (o *openAPI) UpdatePanelTarget(ctx context.Context, panelID string, req dto.PanelTargetReq) error {
+	_, err := o.request(ctx).
+		SetPathParam("panel_id", panelID).
+		SetBody(req).
+		Put(o.getURL(panelTargetURI))
+	return err
+}
